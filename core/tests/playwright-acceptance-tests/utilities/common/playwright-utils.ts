@@ -438,6 +438,15 @@ export class BaseUser {
   }
 
   /**
+   * Scrolls to the bottom of the page.
+   */
+  async scrollToBottomOfPage(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+  }
+
+  /**
    * The function selects all text content and delete it.
    * @param {string} selector - The CSS selector of the element to clear text from.
    */

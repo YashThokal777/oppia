@@ -162,6 +162,20 @@ const editWorkedExampleModalQuestionRte =
 const editWorkedExampleModalAnswerRte =
   '.e2e-test-arg-editor-inner-1 .e2e-test-rte';
 const rteComponentSaveButton = '.e2e-test-close-rich-text-component-editor';
+const subtopicStudyGuideHeadingField =
+  '.e2e-test-new-subtopic-study-guide-section-heading-field';
+const subtopicStudyGuideContentField =
+  '.e2e-test-create-subtopic-page-content-rich-text-editor';
+const showSectionsList = '.e2e-test-show-study-guide-sections-list';
+const firstStudyGuideSectionTile = '.e2e-test-study-guide-section-0';
+const addStudyGuideSectionButton = '.e2e-test-add-study-guide-section';
+const addStudyGuideSectionModalHeading =
+  '.e2e-test-add-study-guide-section-modal-heading-field';
+const addStudyGuideSectionModalContent =
+  '.e2e-test-add-study-guide-section-modal-content-field';
+const addStudyGuideSectionModalSaveButton =
+  '.e2e-test-add-study-guide-section-modal-save-button';
+const deleteStudyGuideSectionButton = '.e2e-test-delete-example-button';
 
 export class TopicManager extends BaseUser {
   /**
@@ -697,6 +711,98 @@ export class TopicManager extends BaseUser {
     await this.clickOnElementWithSelector(createSubtopicButton);
     await this.saveTopicDraft(topicName);
     showMessage(`Subtopic ${title} is created.`);
+  }
+
+  /**
+   * Create a subtopic with study guides as a curriculum admin.
+   * @param {string} title - The title of the Subtopic.
+   * @param {string} urlFragment - The url fragment of the Subtopic.
+   * @param {string} heading - The heading of the initial Subtopic Study Guide Section.
+   * @param {string} content - The content of the initial Subtopic Study Guide Section.
+   * @param {string} topicName - The name of the Topic which storing the new Subtopic.
+   * @param {boolean} addWorkedExample - True if the study guide should have a WorkedExample,
+   * false otherwise.
+   */
+  async createSubtopicWithStudyGuideForTopic(
+    title: string,
+    urlFragment: string,
+    heading: string,
+    content: string,
+    topicName: string,
+    addWorkedExample: boolean = false
+  ): Promise<void> {
+    await this.openTopicEditor(topicName);
+    if (this.isViewportAtMobileWidth()) {
+      await this.clickOnElementWithSelector(subtopicReassignHeader);
+    }
+    await this.clickOnElementWithSelector(addSubtopicButton);
+    await this.typeInInputField(subtopicTitleField, title);
+    await this.expectElementToBeVisible(subtopicUrlFragmentField);
+    await this.typeInInputField(subtopicUrlFragmentField, urlFragment);
+
+    await this.typeInInputField(subtopicStudyGuideHeadingField, heading);
+    await this.clickOnElementWithSelector(subtopicStudyGuideContentField);
+    await this.expectElementToBeVisible(richTextAreaField);
+    await this.typeInInputField(richTextAreaField, content);
+    if (addWorkedExample) {
+      await this.clickOnElementWithSelector(insertWorkedExampleButton);
+      await this.expectElementToBeVisible(editWorkedExampleModalQuestionRte);
+      await this.clearAllTextFrom(editWorkedExampleModalQuestionRte);
+      await this.typeInInputField(
+        editWorkedExampleModalQuestionRte,
+        'Type the number one'
+      );
+      await this.expectElementToBeVisible(editWorkedExampleModalAnswerRte);
+      await this.clearAllTextFrom(editWorkedExampleModalAnswerRte);
+      await this.typeInInputField(editWorkedExampleModalAnswerRte, '1');
+      await this.clickOnElementWithSelector(rteComponentSaveButton);
+    }
+
+    await this.clickOnElementWithSelector(subtopicPhotoBoxButton);
+    await this.expectElementToBeVisible(photoUploadModal);
+    await this.uploadFile(curriculumAdminThumbnailImage);
+    await this.expectElementToBeVisible(`${uploadPhotoButton}:not([disabled])`);
+    await this.clickOnElementWithSelector(uploadPhotoButton);
+
+    await this.expectElementToBeVisible(photoUploadModal, false);
+    await this.clickOnElementWithSelector(createSubtopicButton);
+    await this.expectElementToBeVisible(modalDiv, false);
+    if (this.isViewportAtMobileWidth()) {
+      await this.clickOnElementWithSelector(showSectionsList);
+      await this.scrollToBottomOfPage();
+    }
+    await this.expectElementToBeVisible(firstStudyGuideSectionTile);
+    showMessage(`Subtopic ${title} is created.`);
+  }
+
+  /**
+   * Add a section to the subtopic study guide. Make sure you are
+   * on the subtopic editor tab for this to work.
+   * @param {string} sectionHeading - The heading of the Section to be added.
+   * @param {string} sectionContent - The content of the Section to be added.
+   * @param {number} currentNumberOfSections - The number of the Sections currently in the Study Guide.
+   */
+  async addSubtopicStudyGuideSection(
+    sectionHeading: string,
+    sectionContent: string,
+    currentNumberOfSections: number
+  ): Promise<void> {
+    await this.clickOnElementWithSelector(addStudyGuideSectionButton);
+    await this.typeInInputField(
+      addStudyGuideSectionModalHeading,
+      sectionHeading
+    );
+    await this.clickOnElementWithSelector(addStudyGuideSectionModalContent);
+    await this.expectElementToBeVisible(richTextAreaField);
+    await this.typeInInputField(richTextAreaField, sectionContent);
+    await this.clickOnElementWithSelector(addStudyGuideSectionModalSaveButton);
+    if (this.isViewportAtMobileWidth()) {
+      await this.scrollToBottomOfPage();
+    }
+    await this.expectElementToBeVisible(
+      `.e2e-test-study-guide-section-${currentNumberOfSections}`
+    );
+    await this.expectElementToBeVisible(deleteStudyGuideSectionButton);
   }
 
   /**

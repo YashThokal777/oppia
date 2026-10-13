@@ -211,6 +211,13 @@ const subtopicListItemInPracticeTabSelector = '.e2e-test-subtopic-item';
 const tabTitleInTopicPageSelector = '.e2e-test-topic-page-tab-title';
 const revisionTabButtonSelector = '.e2e-test-study-tab-link';
 const revisionTabSelector = 'subtopics-list';
+const subtopicTitleInStudyTabSelector = '.subtopic-title';
+const expandWorkedExampleButton = '.e2e-test-expand-workedexample';
+const collapseWorkedExampleButton = '.e2e-test-collapse-workedexample';
+const goToNextStudyGuideButton = '.e2e-test-go-to-next-study-guide-button';
+const goToStudyGuideMenuButton = '.e2e-test-go-to-study-guide-menu-button';
+const goToPracticeSectionButton = '.e2e-test-go-to-practice-section-button';
+const goBackToTopicButton = '.e2e-test-go-back-to-topic-button';
 
 export class LoggedOutUser extends BaseUser {
   /**
@@ -2151,6 +2158,105 @@ export class LoggedOutUser extends BaseUser {
 
     await this.waitForPageToFullyLoad();
     await this.expectElementToBeVisible(revisionTabSelector);
+  }
+
+  /**
+   * Navigates to the practice tab of a topic in the math classroom using the URL.
+   * @param {string} topicUrlFragment - The url fragment of the topic.
+   */
+  async navigateToPracticeTabUsingURL(topicUrlFragment: string): Promise<void> {
+    await this.goto(
+      `${testConstants.URLs.MathClassroom}/${topicUrlFragment}/practice`
+    );
+    await this.waitForPageToFullyLoad();
+  }
+
+  /**
+   * Selects a review card in the study tab based on the subtopic name.
+   * @param {string} subtopicName - The name of the subtopic to select.
+   */
+  async selectReviewCardToLearn(subtopicName: string): Promise<void> {
+    await this.expectElementToBeVisible(subtopicTitleInStudyTabSelector);
+    const subtopicElements = await this.page.$$(
+      subtopicTitleInStudyTabSelector
+    );
+
+    for (const subtopicElement of subtopicElements) {
+      const innerText = await subtopicElement.innerText();
+      if (innerText.trim() === subtopicName) {
+        await this.clickOnElement(subtopicElement);
+        await this.expectElementToBeVisible(
+          subtopicTitleInStudyTabSelector,
+          false
+        );
+        await this.waitForPageToFullyLoad();
+        showMessage(`Review card ${subtopicName} is opened.`);
+        return;
+      }
+    }
+
+    throw new Error(`No subtopic found with the name: ${subtopicName}`);
+  }
+
+  /**
+   * Verifies if the subtopic study guide has the expected title and sections.
+   * @param {string} studyGuideTitle - The expected title of the study guide.
+   * @param {string[][]} studyGuideSections - The expected sections of the study
+   * guide. Each section is a [heading, content] pair.
+   */
+  async expectSubtopicStudyGuideToHaveTitleAndSections(
+    studyGuideTitle: string,
+    studyGuideSections: string[][]
+  ): Promise<void> {
+    const expectedTexts = [studyGuideTitle, ...studyGuideSections.flat()];
+    for (const text of expectedTexts) {
+      if (!(await this.isTextPresentOnPage(text))) {
+        throw new Error(
+          `Expected "${text}" to be present in the study guide, but it was not found.`
+        );
+      }
+    }
+  }
+
+  /**
+   * Clicks on the expand worked example button in the study guide.
+   */
+  async clickOnExpandWorkedexampleButton(): Promise<void> {
+    await this.expectElementToBeVisible(expandWorkedExampleButton);
+    await this.clickOnElementWithSelector(expandWorkedExampleButton);
+    await this.expectElementToBeVisible(collapseWorkedExampleButton);
+  }
+
+  /**
+   * Clicks on the next study guide button.
+   */
+  async clickOnNextStudyGuideButton(): Promise<void> {
+    await this.clickOnElementWithSelector(goToNextStudyGuideButton);
+    await this.waitForPageToFullyLoad();
+  }
+
+  /**
+   * Clicks on the study guide menu button.
+   */
+  async clickOnStudyGuideMenuButton(): Promise<void> {
+    await this.clickOnElementWithSelector(goToStudyGuideMenuButton);
+    await this.waitForPageToFullyLoad();
+  }
+
+  /**
+   * Clicks on the practice button in the study guide.
+   */
+  async clickOnPracticeButton(): Promise<void> {
+    await this.clickOnElementWithSelector(goToPracticeSectionButton);
+    await this.waitForPageToFullyLoad();
+  }
+
+  /**
+   * Clicks on the back to topic button in the study guide.
+   */
+  async clickOnBackToTopicButton(): Promise<void> {
+    await this.clickOnElementWithSelector(goBackToTopicButton);
+    await this.waitForPageToFullyLoad();
   }
 
   /**
